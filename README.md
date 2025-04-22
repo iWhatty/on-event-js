@@ -7,15 +7,17 @@ Write clean event bindings using fluent `On.click(...)`, `On.once.keydown(...)`,
 
 ## Features
 
-- `on(el, 'click', fn)` — classic event binding
+- `on(el, 'click', fn)` — classic binding
 - `On.click(el, fn)` — fluent sugar per event name
 - `On.once.click(el, fn)` — fires once then unbinds
 - `On.delegate.click(el, selector, fn)` — delegated events
 - `On.capture.focus(el, fn)` — capture-phase listener
 - `On.hover(el, enter, leave)` — mouseenter/leave pair
-- `On.batch(el, { event: fn, ... })` — bulk binding
+- `On.batch(el, { click, ... })` — multi-bind at once
+- `On.once.batch(...)` — one-time multi-bind
+- `On.passive.scroll(el, fn)` — optimized scroll/touch
 - `On.ready(fn)` — run when DOM is ready
-- Fully ESM, no dependencies, < 1KB min+gzip
+- ESM, zero dependencies, < 1KB min+gzip
 
 ---
 
@@ -49,7 +51,7 @@ stop() // unbinds
 import { On } from 'on-events'
 
 // Basic
-On.click(button, () => console.log('Clicked!'))
+On.click(button, () => console.log('Clicked'))
 
 // Once
 On.once.submit(form, () => console.log('Submitted once'))
@@ -75,11 +77,32 @@ const stopHover = On.hover(card,
 
 ```js
 const stop = On.batch(window, {
-  click: () => console.log('Window clicked'),
-  keydown: (e) => console.log('Key pressed:', e.key)
+  click: () => console.log('Clicked window'),
+  keydown: (e) => console.log('Key:', e.key)
 })
 
-// Call `stop()` to unbind all
+// Unbind all
+stop()
+```
+
+---
+
+### One-Time Batch
+
+```js
+On.once.batch(document, {
+  scroll: () => console.log('First scroll only'),
+  keyup: () => console.log('First keyup')
+})
+```
+
+---
+
+### Passive Listeners
+
+```js
+On.passive.scroll(window, () => console.log('Smooth scroll'))
+On.passive.touchstart(document, e => console.log('Touch began'))
 ```
 
 ---
@@ -115,8 +138,7 @@ Example: `On.click(el, fn)`.
 
 ### `On.once.event(el, handler)`
 
-Binds the event with `{ once: true }`.  
-Auto-removes after first call.
+Same as `On.event`, but auto-removes after the first fire.
 
 ---
 
@@ -128,13 +150,13 @@ Binds a delegated event using `closest(selector)`.
 
 ### `On.capture.event(el, handler)`
 
-Listens in the capture phase.
+Adds a listener during the capture phase.
 
 ---
 
 ### `On.hover(el, enterFn, leaveFn)`
 
-Convenience for `mouseenter` and `mouseleave`.
+Binds both `mouseenter` and `mouseleave`. Returns a stop function.
 
 ---
 
@@ -143,18 +165,37 @@ Convenience for `mouseenter` and `mouseleave`.
 Bind multiple events at once:
 ```js
 On.batch(el, {
-  click: fn1,
-  keydown: fn2
+  click: handleClick,
+  keydown: handleKey
 })
 ```
 
-Returns an `unmount()` function to remove all.
+---
+
+### `On.once.batch(el, map)`
+
+One-time version of `batch()`:
+```js
+On.once.batch(el, {
+  scroll: onScrollOnce,
+  input: onFirstInput
+})
+```
+
+---
+
+### `On.passive.event(el, handler)`
+
+Adds a listener with `{ passive: true }`, ideal for:
+- `scroll`
+- `touchstart`
+- `wheel`
 
 ---
 
 ### `On.ready(fn)`
 
-Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or immediate).
+Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 
 ---
 

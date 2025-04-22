@@ -1,31 +1,20 @@
-import { on, off } from './on-event.js'
+import { on, On, off } from 'on-events'
 
-// 1. Basic Event
-const stopLog = on(window, 'click', () => console.log('clicked window'))
-setTimeout(stopLog, 2000) // Auto remove after 2s
+// Classic
+on(window, 'click', () => console.log('clicked'))
 
-// 2. Delegated Event
-const ul = document.createElement('ul')
-ul.innerHTML = `<li><button>One</button></li><li><button>Two</button></li>`
-document.body.appendChild(ul)
+// Fluent
+On.keydown(document, (e) => console.log(e.key))
+On.click('#btn', () => console.log('clicked'))
 
-on(ul, 'click', 'button', (e) => {
-  console.log('Clicked button:', e.textContent.trim())
-})
+// Once
+On.once.submit(form, handleSubmitOnce)
 
-// 3. Multiple bindings
-const input = document.createElement('input')
-document.body.appendChild(input)
+// Delegated
+On.delegate.click(document, 'button.action', e => console.log(e.target))
 
-const logInput = () => console.log('typing...')
-const stopTyping = on(input, 'input', logInput)
+// Capture phase
+On.capture.focus(input, () => console.log('focus in capture'))
 
-setTimeout(() => {
-  stopTyping()
-  console.log('Unbound input event')
-}, 5000)
-
-// 4. Once-only event
-on(window, 'keydown', (e) => {
-  console.log('Pressed:', e.key)
-}, { once: true })
+// Hover
+const unhover = On.hover(box, () => box.classList.add('hover'), () => box.classList.remove('hover'))

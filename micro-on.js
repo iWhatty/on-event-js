@@ -1,44 +1,45 @@
 // micro-on.js
 
-const listeners = new WeakMap()
+const handlers = new WeakMap()
 
-export function on(el, type, selector, cb, options = {}) {
+export function on(el, type, selector, cb, opts) {
   if (typeof selector === 'function') {
+    opts = cb
     cb = selector
     selector = null
   }
 
   const wrapped = selector
     ? (e) => {
-        if (e.target.closest(selector)) cb.call(e.target, e)
+        const match = e.target.closest(selector)
+        if (match && el.contains(match)) cb.call(match, e)
       }
     : cb
 
-  el.addEventListener(type, wrapped, options)
+  el.addEventListener(type, wrapped, opts)
 
-  // Track for `off`
-  if (!listeners.has(el)) listeners.set(el, [])
-  listeners.get(el).push({ type, cb, selector, wrapped })
+  if (!handlers.has(el)) handlers.set(el, [])
+  handlers.get(el).push({ type, cb, selector, wrapped })
 
   return () => off(el, type, cb, selector)
 }
 
 export function off(el, type, cb, selector) {
-  const group = listeners.get(el)
-  if (!group) return
+  const store = handlers.get(el)
+  if (!store) return
 
-  for (let i = group.length - 1; i >= 0; i--) {
-    const h = group[i]
+  for (let i = store.length; i-- > 0; ) {
+    const h = store[i]
     const match =
       h.type === type &&
       h.cb === cb &&
-      (selector ? h.selector === selector : !h.selector)
+      h.selector === (selector || null)
 
     if (match) {
       el.removeEventListener(type, h.wrapped)
-      group.splice(i, 1)
+      store.splice(i, 1)
     }
   }
 
-  if (!group.length) listeners.delete(el)
+  if (store.length === 0) handlers.delete(el)
 }

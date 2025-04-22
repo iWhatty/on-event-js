@@ -49,8 +49,8 @@ const On = new Proxy({}, {
   }
 })
 
-// On.once.* — fires once
-On.once = new Proxy({}, {
+// On.first.* — fires once
+On.first = new Proxy({}, {
   get(_, event) {
     return (el, ...args) => baseOn(el, event, ...args, { once: true })
   }
@@ -97,11 +97,11 @@ On.ready = (fn) => {
 }
 
 
-// --- once.batch sugar ---
-On.once.batch = (el, map) => {
+// --- first.batch sugar ---
+On.first.batch = (el, map) => {
   const stops = []
   for (const [event, fn] of Object.entries(map)) {
-    stops.push(On.once[event](el, fn))
+    stops.push(On.first[event](el, fn))
   }
   return () => stops.forEach(stop => stop())
 }

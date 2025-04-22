@@ -1,121 +1,133 @@
-# On(Events)
+# on-events
 
-**Tiny DOM event binding with sugar.**  
-Delegate, unbind, and handle events like a boss — in under 1KB.
-
-[![License](https://img.shields.io/npm/l/on-events.svg)](LICENSE)  
-[![npm version](https://img.shields.io/npm/v/on-events.svg)](https://www.npmjs.com/package/on-events)
+**A tiny DOM event utility with sugar.**  
+Write clean event bindings using fluent `On.click(...)`, `On.once.keydown(...)`, or classic `on(el, 'click', fn)`.
 
 ---
 
 ## Features
 
-- `on()` to bind events — directly or via delegation  
-- `off()` to clean up easily  
-- Supports one-time handlers with `{ once: true }`  
-- Uses `WeakMap` internally — no memory leaks  
-- Works on any DOM node: `HTMLElement`, `window`, `document`  
-- Zero dependencies, ESM-first
+- `on(el, 'click', fn)` — classic event binding
+- `On.click(el, fn)` — fluent sugar per event name
+- `On.once.click(el, fn)` — auto-unbind after first call
+- `On.delegate.click(el, selector, fn)` — event delegation
+- `On.capture.click(el, fn)` — capture phase handling
+- `On.hover(el, enterFn, leaveFn)` — sugar for mouseenter/leave
+- Tiny (<1KB), ESM, zero dependencies
 
 ---
 
-## Installation
+## Install
 
 ```bash
 npm install on-events
-```
-
-Or use directly in the browser via a CDN:
-
-```html
-<script type="module">
-  import { on, off } from 'https://cdn.skypack.dev/on-events'
-</script>
 ```
 
 ---
 
 ## Usage
 
+### Classic Syntax
+
 ```js
 import { on, off } from 'on-events'
 
-// Basic event binding
-const stopClick = on(window, 'click', () => {
-  console.log('Window clicked')
-})
-stopClick() // Unbinds
-
-// Delegated event
-const ul = document.querySelector('ul')
-on(ul, 'click', 'button', (e) => {
-  console.log('Clicked:', e.target.textContent)
+const stop = on(window, 'keydown', (e) => {
+  console.log('key:', e.key)
 })
 
-// One-time event
-on(window, 'keydown', (e) => {
-  console.log('Pressed:', e.key)
-}, { once: true })
+stop() // Unbinds
+```
+
+---
+
+### Sugar Syntax
+
+```js
+import { On } from 'on-events'
+
+// Basic binding
+On.click(button, () => console.log('clicked'))
+On.keydown(window, (e) => console.log('pressed', e.key))
+
+// Once
+On.once.submit(form, (e) => console.log('submitted once'))
+
+// Delegate
+On.delegate.click(document, 'button.action', (e) => {
+  console.log('clicked', e.target.textContent)
+})
+
+// Capture
+On.capture.focus(input, () => console.log('focused (capture)'))
+
+// Hover
+const stopHover = On.hover(card,
+  () => card.classList.add('hover'),
+  () => card.classList.remove('hover')
+)
 ```
 
 ---
 
 ## API
 
-### `on(element, type, [selector], callback, [options])`
+### `on(element, event, [selector], handler)`
 
-Adds an event listener.
-
-- `element`: any EventTarget (`window`, `document`, or an element)
-- `type`: event name (e.g. `'click'`, `'keydown'`)
-- `selector`: optional CSS selector (for delegated events)
-- `callback`: your event handler
-- `options`: native `addEventListener` options (`{ once, capture, passive }`)
-
-Returns a cleanup function — you can call this to remove the event.
+Adds an event listener. If `selector` is provided, uses delegation.  
+Returns a `stop()` function to unbind.
 
 ---
 
-### `off(element, type, callback, [selector])`
+### `off(element, event, handler, [selector])`
 
-Removes an event listener.
-
-- Use the same `callback` and `selector` used in `on()`
-- Can also remove delegated handlers
+Removes an event listener previously added with `on()`.
 
 ---
 
-## Example
+### `On.event(element, handler)`
 
-```js
-const log = (e) => console.log('Clicked', e.target)
-
-const stop = on(document.body, 'click', 'button', log)
-
-// Later...
-off(document.body, 'click', log, 'button')
-// or:
-stop()
-```
+Sugar for `on(el, 'event', handler)`.  
+Example: `On.click(el, handler)`.
 
 ---
 
-## Why Use This?
+### `On.once.event(element, handler)`
 
-- Smaller than big event libraries
-- Cleaner than raw `addEventListener`
-- Safer — tracks and unbinds with no leaks
-- Scoped delegation via `closest(selector)` and `el.contains(target)`
+Binds an event that auto-removes after one call.  
+Example: `On.once.click(el, handler)`.
 
 ---
 
-## Browser Support
+### `On.delegate.event(element, selector, handler)`
 
-Modern browsers: Chrome, Edge, Firefox, Safari.  
-Uses `closest()` and `WeakMap`.
+Binds using event delegation.  
+Example: `On.delegate.click(document, '.btn', handler)`.
+
+---
+
+### `On.capture.event(element, handler)`
+
+Binds the event in the capture phase.  
+Example: `On.capture.focus(input, fn)`.
+
+---
+
+### `On.hover(element, enterFn, leaveFn)`
+
+Binds `mouseenter` and `mouseleave` together.  
+Returns a function to unbind both.
+
+---
+
+## Notes
+
+- `On.*` methods return an unbind function.
+- Works with any `EventTarget`: DOM nodes, `window`, etc.
+- Safe delegation using `el.contains()` and `closest()`.
 
 ---
 
 ## License
 
-MIT © [J W](https://github.com/yourhandle)
+MIT © J W

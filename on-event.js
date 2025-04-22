@@ -1,10 +1,9 @@
 // micro-on.js
 
-const handlers = new WeakMap()
+const listeners = new WeakMap()
 
-export function on(el, type, selector, cb, opts) {
+function baseOn(el, type, selector, cb, opts = {}) {
   if (typeof selector === 'function') {
-    opts = cb
     cb = selector
     selector = null
   }
@@ -18,8 +17,8 @@ export function on(el, type, selector, cb, opts) {
 
   el.addEventListener(type, wrapped, opts)
 
-  if (!handlers.has(el)) handlers.set(el, [])
-  handlers.get(el).push({ type, cb, selector, wrapped })
+  if (!listeners.has(el)) listeners.set(el, [])
+  listeners.get(el).push({ type, cb, selector, wrapped })
 
   return () => off(el, type, cb, selector)
 }
@@ -43,3 +42,17 @@ export function off(el, type, cb, selector) {
 
   if (store.length === 0) handlers.delete(el)
 }
+
+
+// Proxy to support On.click(...) syntax
+const On = new Proxy({}, {
+  get(_, event) {
+    return (el, ...args) => baseOn(el, event, ...args)
+  }
+})
+
+
+export const on = (el, event, ...rest) => baseOn(el, event, ...rest)
+
+
+export { On, off }

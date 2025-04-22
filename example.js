@@ -1,4 +1,4 @@
-import { on, off } from './micro-on.js'
+import { on, off } from './on-event.js'
 
 // 1. Basic Event
 const stopLog = on(window, 'click', () => console.log('clicked window'))

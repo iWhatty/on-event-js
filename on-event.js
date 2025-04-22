@@ -114,7 +114,8 @@ On.passive = new Proxy({}, {
 })
 
 
-
+// alias On.once → On.first for backward compatibility
+On.once = On.first
 
 // --- classic support
 const on = (el, event, ...args) => baseOn(el, event, ...args)

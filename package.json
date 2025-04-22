@@ -1,0 +1,13 @@
+{
+    "name": "on-events",
+    "version": "1.0.0",
+    "description": "Minimal DOM event utility with delegation, unbinding, and sugar.",
+    "exports": {
+      "import": "./micro-on.js"
+    },
+    "type": "module",
+    "keywords": ["events", "dom", "delegate", "unbind", "handler", "micro"],
+    "author": "J W",
+    "license": "MIT"
+  }
+  

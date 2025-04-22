@@ -1,7 +1,7 @@
 # on-events
 
 **A tiny DOM event utility with sugar.**  
-Write clean event bindings using fluent `On.click(...)`, `On.once.keydown(...)`, or classic `on(el, 'click', fn)`.
+Write clean event bindings using fluent `On.click(...)`, `On.first.keydown(...)`, or classic `on(el, 'click', fn)`.
 
 ---
 
@@ -9,12 +9,12 @@ Write clean event bindings using fluent `On.click(...)`, `On.once.keydown(...)`,
 
 - `on(el, 'click', fn)` — classic binding
 - `On.click(el, fn)` — fluent sugar per event name
-- `On.once.click(el, fn)` — fires once then unbinds
+- `On.first.click(el, fn)` — fires once then unbinds
 - `On.delegate.click(el, selector, fn)` — delegated events
 - `On.capture.focus(el, fn)` — capture-phase listener
 - `On.hover(el, enter, leave)` — mouseenter/leave pair
 - `On.batch(el, { click, ... })` — multi-bind at once
-- `On.once.batch(...)` — one-time multi-bind
+- `On.first.batch(...)` — one-time multi-bind
 - `On.passive.scroll(el, fn)` — optimized scroll/touch
 - `On.ready(fn)` — run when DOM is ready
 - ESM, zero dependencies, < 1KB min+gzip
@@ -53,8 +53,8 @@ import { On } from 'on-events'
 // Basic
 On.click(button, () => console.log('Clicked'))
 
-// Once
-On.once.submit(form, () => console.log('Submitted once'))
+// Fires once
+On.first.submit(form, () => console.log('Submitted once'))
 
 // Delegate
 On.delegate.click(document, 'button.action', (e) => {
@@ -77,7 +77,7 @@ const stopHover = On.hover(card,
 
 ```js
 const stop = On.batch(window, {
-  click: () => console.log('Clicked window'),
+  click: () => console.log('Window clicked'),
   keydown: (e) => console.log('Key:', e.key)
 })
 
@@ -87,11 +87,11 @@ stop()
 
 ---
 
-### One-Time Batch
+### One-Time Batch Binding
 
 ```js
-On.once.batch(document, {
-  scroll: () => console.log('First scroll only'),
+On.first.batch(document, {
+  scroll: () => console.log('First scroll'),
   keyup: () => console.log('First keyup')
 })
 ```
@@ -102,7 +102,7 @@ On.once.batch(document, {
 
 ```js
 On.passive.scroll(window, () => console.log('Smooth scroll'))
-On.passive.touchstart(document, e => console.log('Touch began'))
+On.passive.touchstart(document, e => console.log('Touch start'))
 ```
 
 ---
@@ -111,7 +111,7 @@ On.passive.touchstart(document, e => console.log('Touch began'))
 
 ```js
 On.ready(() => {
-  console.log('DOM fully loaded and parsed')
+  console.log('DOM fully loaded')
 })
 ```
 
@@ -136,9 +136,10 @@ Example: `On.click(el, fn)`.
 
 ---
 
-### `On.once.event(el, handler)`
+### `On.first.event(el, handler)`
 
-Same as `On.event`, but auto-removes after the first fire.
+Same as `On.event`, but auto-removes after first call.  
+Example: `On.first.keydown(el, fn)`
 
 ---
 
@@ -156,7 +157,7 @@ Adds a listener during the capture phase.
 
 ### `On.hover(el, enterFn, leaveFn)`
 
-Binds both `mouseenter` and `mouseleave`. Returns a stop function.
+Convenience for `mouseenter` and `mouseleave`.
 
 ---
 
@@ -165,20 +166,20 @@ Binds both `mouseenter` and `mouseleave`. Returns a stop function.
 Bind multiple events at once:
 ```js
 On.batch(el, {
-  click: handleClick,
-  keydown: handleKey
+  click: fn1,
+  keydown: fn2
 })
 ```
 
 ---
 
-### `On.once.batch(el, map)`
+### `On.first.batch(el, map)`
 
 One-time version of `batch()`:
 ```js
-On.once.batch(el, {
-  scroll: onScrollOnce,
-  input: onFirstInput
+On.first.batch(el, {
+  scroll: onceScroll,
+  input: onceInput
 })
 ```
 
@@ -196,6 +197,12 @@ Adds a listener with `{ passive: true }`, ideal for:
 ### `On.ready(fn)`
 
 Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
+
+---
+
+## Legacy Aliases
+
+- `On.once.*` is still available as a backward-compatible alias for `On.first.*`
 
 ---
 

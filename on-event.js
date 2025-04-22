@@ -97,6 +97,24 @@ On.ready = (fn) => {
 }
 
 
+// --- once.batch sugar ---
+On.once.batch = (el, map) => {
+  const stops = []
+  for (const [event, fn] of Object.entries(map)) {
+    stops.push(On.once[event](el, fn))
+  }
+  return () => stops.forEach(stop => stop())
+}
+
+// --- passive.* sugar ---
+On.passive = new Proxy({}, {
+  get(_, event) {
+    return (el, ...args) => baseOn(el, event, ...args, { passive: true })
+  }
+})
+
+
+
 
 // --- classic support
 const on = (el, event, ...args) => baseOn(el, event, ...args)

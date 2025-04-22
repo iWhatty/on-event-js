@@ -9,11 +9,13 @@ Write clean event bindings using fluent `On.click(...)`, `On.once.keydown(...)`,
 
 - `on(el, 'click', fn)` — classic event binding
 - `On.click(el, fn)` — fluent sugar per event name
-- `On.once.click(el, fn)` — auto-unbind after first call
-- `On.delegate.click(el, selector, fn)` — event delegation
-- `On.capture.click(el, fn)` — capture phase handling
-- `On.hover(el, enterFn, leaveFn)` — sugar for mouseenter/leave
-- Tiny (<1KB), ESM, zero dependencies
+- `On.once.click(el, fn)` — fires once then unbinds
+- `On.delegate.click(el, selector, fn)` — delegated events
+- `On.capture.focus(el, fn)` — capture-phase listener
+- `On.hover(el, enter, leave)` — mouseenter/leave pair
+- `On.batch(el, { event: fn, ... })` — bulk binding
+- `On.ready(fn)` — run when DOM is ready
+- Fully ESM, no dependencies, < 1KB min+gzip
 
 ---
 
@@ -27,39 +29,38 @@ npm install on-events
 
 ## Usage
 
-### Classic Syntax
+### Classic Binding
 
 ```js
 import { on, off } from 'on-events'
 
 const stop = on(window, 'keydown', (e) => {
-  console.log('key:', e.key)
+  console.log('Pressed:', e.key)
 })
 
-stop() // Unbinds
+stop() // unbinds
 ```
 
 ---
 
-### Sugar Syntax
+### Fluent Sugar
 
 ```js
 import { On } from 'on-events'
 
-// Basic binding
-On.click(button, () => console.log('clicked'))
-On.keydown(window, (e) => console.log('pressed', e.key))
+// Basic
+On.click(button, () => console.log('Clicked!'))
 
 // Once
-On.once.submit(form, (e) => console.log('submitted once'))
+On.once.submit(form, () => console.log('Submitted once'))
 
 // Delegate
 On.delegate.click(document, 'button.action', (e) => {
-  console.log('clicked', e.target.textContent)
+  console.log('Clicked', e.target.textContent)
 })
 
 // Capture
-On.capture.focus(input, () => console.log('focused (capture)'))
+On.capture.focus(input, () => console.log('Focus (captured)'))
 
 // Hover
 const stopHover = On.hover(card,
@@ -70,61 +71,90 @@ const stopHover = On.hover(card,
 
 ---
 
-## API
+### Batch Binding
 
-### `on(element, event, [selector], handler)`
+```js
+const stop = On.batch(window, {
+  click: () => console.log('Window clicked'),
+  keydown: (e) => console.log('Key pressed:', e.key)
+})
 
-Adds an event listener. If `selector` is provided, uses delegation.  
-Returns a `stop()` function to unbind.
-
----
-
-### `off(element, event, handler, [selector])`
-
-Removes an event listener previously added with `on()`.
+// Call `stop()` to unbind all
+```
 
 ---
 
-### `On.event(element, handler)`
+### DOM Ready
 
-Sugar for `on(el, 'event', handler)`.  
-Example: `On.click(el, handler)`.
-
----
-
-### `On.once.event(element, handler)`
-
-Binds an event that auto-removes after one call.  
-Example: `On.once.click(el, handler)`.
+```js
+On.ready(() => {
+  console.log('DOM fully loaded and parsed')
+})
+```
 
 ---
 
-### `On.delegate.event(element, selector, handler)`
+## API Reference
 
-Binds using event delegation.  
-Example: `On.delegate.click(document, '.btn', handler)`.
+### `on(el, event, [selector], handler)`
 
----
+Adds a standard or delegated event listener. Returns a stop function.
 
-### `On.capture.event(element, handler)`
+### `off(el, event, handler, [selector])`
 
-Binds the event in the capture phase.  
-Example: `On.capture.focus(input, fn)`.
+Removes a previously added listener.
 
 ---
 
-### `On.hover(element, enterFn, leaveFn)`
+### `On.event(el, handler)`
 
-Binds `mouseenter` and `mouseleave` together.  
-Returns a function to unbind both.
+Fluent alias for `on(el, 'event', handler)`.  
+Example: `On.click(el, fn)`.
 
 ---
 
-## Notes
+### `On.once.event(el, handler)`
 
-- `On.*` methods return an unbind function.
-- Works with any `EventTarget`: DOM nodes, `window`, etc.
-- Safe delegation using `el.contains()` and `closest()`.
+Binds the event with `{ once: true }`.  
+Auto-removes after first call.
+
+---
+
+### `On.delegate.event(el, selector, handler)`
+
+Binds a delegated event using `closest(selector)`.
+
+---
+
+### `On.capture.event(el, handler)`
+
+Listens in the capture phase.
+
+---
+
+### `On.hover(el, enterFn, leaveFn)`
+
+Convenience for `mouseenter` and `mouseleave`.
+
+---
+
+### `On.batch(el, map)`
+
+Bind multiple events at once:
+```js
+On.batch(el, {
+  click: fn1,
+  keydown: fn2
+})
+```
+
+Returns an `unmount()` function to remove all.
+
+---
+
+### `On.ready(fn)`
+
+Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or immediate).
 
 ---
 

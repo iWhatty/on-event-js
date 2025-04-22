@@ -1,8 +1,10 @@
 // micro-on.js
 
+// --- internal base ---
 const listeners = new WeakMap()
 
-function baseOn(el, type, selector, cb, opts = {}) {
+
+function baseOn(el, type, selector, cb, options = {}) {
   if (typeof selector === 'function') {
     cb = selector
     selector = null
@@ -15,7 +17,7 @@ function baseOn(el, type, selector, cb, opts = {}) {
       }
     : cb
 
-  el.addEventListener(type, wrapped, opts)
+  el.addEventListener(type, wrapped, options)
 
   if (!listeners.has(el)) listeners.set(el, [])
   listeners.get(el).push({ type, cb, selector, wrapped })
@@ -23,36 +25,59 @@ function baseOn(el, type, selector, cb, opts = {}) {
   return () => off(el, type, cb, selector)
 }
 
-export function off(el, type, cb, selector) {
-  const store = listeners.get(el)
-  if (!store) return
-
-  for (let i = store.length; i-- > 0; ) {
-    const h = store[i]
+function off(el, type, cb, selector = null) {
+  const group = listeners.get(el)
+  if (!group) return
+  for (let i = group.length; i-- > 0; ) {
+    const h = group[i]
     const match =
       h.type === type &&
       h.cb === cb &&
-      h.selector === (selector || null)
-
+      (selector ? h.selector === selector : !h.selector)
     if (match) {
       el.removeEventListener(type, h.wrapped)
-      store.splice(i, 1)
+      group.splice(i, 1)
     }
   }
-
-  if (store.length === 0) listeners.delete(el)
+  if (!group.length) listeners.delete(el)
 }
 
-
-// Proxy to support On.click(...) syntax
+// --- sugar: On.* ---
 const On = new Proxy({}, {
   get(_, event) {
     return (el, ...args) => baseOn(el, event, ...args)
   }
 })
 
+// On.once.* — fires once
+On.once = new Proxy({}, {
+  get(_, event) {
+    return (el, ...args) => baseOn(el, event, ...args, { once: true })
+  }
+})
 
-export const on = (el, event, ...rest) => baseOn(el, event, ...rest)
+// On.delegate.* — forces selector style
+On.delegate = new Proxy({}, {
+  get(_, event) {
+    return (el, selector, handler) => baseOn(el, event, selector, handler)
+  }
+})
 
+// On.capture.* — capture phase
+On.capture = new Proxy({}, {
+  get(_, event) {
+    return (el, ...args) => baseOn(el, event, ...args, { capture: true })
+  }
+})
 
-export { On, off }
+// On.hover(el, enterFn, leaveFn)
+On.hover = (el, enter, leave) => {
+  const offIn = baseOn(el, 'mouseenter', enter)
+  const offOut = baseOn(el, 'mouseleave', leave)
+  return () => { offIn(); offOut() }
+}
+
+// --- classic support
+const on = (el, event, ...args) => baseOn(el, event, ...args)
+
+export { on, On, off }

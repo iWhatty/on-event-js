@@ -24,7 +24,7 @@ function baseOn(el, type, selector, cb, opts = {}) {
 }
 
 export function off(el, type, cb, selector) {
-  const store = handlers.get(el)
+  const store = listeners.get(el)
   if (!store) return
 
   for (let i = store.length; i-- > 0; ) {
@@ -40,7 +40,7 @@ export function off(el, type, cb, selector) {
     }
   }
 
-  if (store.length === 0) handlers.delete(el)
+  if (store.length === 0) listeners.delete(el)
 }
 
 

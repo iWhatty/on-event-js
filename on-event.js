@@ -77,6 +77,27 @@ On.hover = (el, enter, leave) => {
   return () => { offIn(); offOut() }
 }
 
+
+// On.batch(el, { click, mouseenter, keydown })
+On.batch = (el, map) => {
+  const stops = []
+  for (const [event, fn] of Object.entries(map)) {
+    stops.push(On[event](el, fn))
+  }
+  return () => stops.forEach(stop => stop())
+}
+
+// On.ready(fn)
+On.ready = (fn) => {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn, { once: true })
+  } else {
+    fn()
+  }
+}
+
+
+
 // --- classic support
 const on = (el, event, ...args) => baseOn(el, event, ...args)
 

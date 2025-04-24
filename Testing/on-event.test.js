@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { on, off } from './on-event.js'
+import { on, off } from '../src/on-event.js'
 
 describe('micro-on', () => {
   let el, child

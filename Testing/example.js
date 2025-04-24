@@ -1,4 +1,4 @@
-import { on, On, off } from 'on-events'
+import { on, On, off } from '../src/on-event'
 
 // Classic
 on(window, 'click', () => console.log('clicked'))

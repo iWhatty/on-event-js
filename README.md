@@ -208,4 +208,4 @@ Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 
 ## License
 
-DR.WATT 3.0
+DR.WATT v3.0

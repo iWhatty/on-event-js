@@ -208,4 +208,4 @@ Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 
 ## License
 
-MIT © J W
+DR.WATT 3.0

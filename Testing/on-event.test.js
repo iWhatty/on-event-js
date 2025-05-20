@@ -3,7 +3,6 @@ import { on, off } from '../src/on-event.js'
 
 describe('micro-on', () => {
   let el, child
-micro-on.test
   beforeEach(() => {
     el = document.createElement('div')
     child = document.createElement('button')

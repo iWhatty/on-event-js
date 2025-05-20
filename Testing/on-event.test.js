@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { on, off } from '../src/on-event.js'
 
-describe('micro-on', () => {
+describe('on-events', () => {
   let el, child
   beforeEach(() => {
     el = document.createElement('div')
@@ -9,6 +9,10 @@ describe('micro-on', () => {
     child.textContent = 'Click Me'
     el.appendChild(child)
     document.body.appendChild(el)
+  })
+
+  afterEach(() => {
+    document.body.removeChild(el)
   })
 
   it('binds a direct event', () => {

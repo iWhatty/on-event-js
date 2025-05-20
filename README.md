@@ -1,4 +1,4 @@
-# On-event
+# on-events
 
 **A tiny DOM event utility with sugar.**  
 Write clean event bindings using fluent `On.click(...)`, `On.first.keydown(...)`, or classic `on(el, 'click', fn)`.

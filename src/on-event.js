@@ -1,4 +1,4 @@
-// micro-on.js
+// on-event.js
 
 // --- internal base ---
 const listeners = new WeakMap()
@@ -6,6 +6,13 @@ const listeners = new WeakMap()
 
 function baseOn(el, type, selector, cb, options = {}) {
   if (typeof selector === 'function') {
+    if (cb && typeof cb === 'object') {
+      options = cb
+    }
+    cb = selector
+    selector = null
+  } else if (cb && typeof cb === 'object') {
+    options = cb
     cb = selector
     selector = null
   }

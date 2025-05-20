@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Minimal DOM event utility with delegation, unbinding, and sugar.",
     "exports": {
-        "import": "./on-event.js"
+        "import": "./src/on-event.js"
     },
     "type": "module",
     "keywords": [

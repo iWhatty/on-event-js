@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { on, off } from '../src/on-event.js'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { on, off, On } from '../src/on-event.js'
 
-describe('micro-on', () => {
+describe('on-events', () => {
   let el, child
   beforeEach(() => {
     el = document.createElement('div')
@@ -9,6 +9,10 @@ describe('micro-on', () => {
     child.textContent = 'Click Me'
     el.appendChild(child)
     document.body.appendChild(el)
+  })
+
+  afterEach(() => {
+    document.body.removeChild(el)
   })
 
   it('binds a direct event', () => {
@@ -49,5 +53,20 @@ describe('micro-on', () => {
     child.click()
     child.click()
     expect(fn).toHaveBeenCalledOnce()
+  })
+
+  it('supports On.batch and cleanup', () => {
+    const click = vi.fn()
+    const over = vi.fn()
+    const stop = On.batch(child, { click, mouseover: over })
+    child.dispatchEvent(new Event('click'))
+    child.dispatchEvent(new Event('mouseover'))
+    expect(click).toHaveBeenCalledOnce()
+    expect(over).toHaveBeenCalledOnce()
+    stop()
+    child.dispatchEvent(new Event('click'))
+    child.dispatchEvent(new Event('mouseover'))
+    expect(click).toHaveBeenCalledOnce()
+    expect(over).toHaveBeenCalledOnce()
   })
 })

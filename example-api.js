@@ -1,4 +1,4 @@
-import { on, off } from 'micro-on'
+import { on, off } from 'on-events'
 
 // Delegate click inside #nav
 const stop = on(document, 'click', '#nav a', e => {

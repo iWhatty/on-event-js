@@ -10,12 +10,20 @@ function baseOn(el, type, selector, cb, options = {}) {
     selector = null
   }
 
-  const wrapped = selector
+  let wrapped = selector
     ? (e) => {
         const match = e.target.closest(selector)
         if (match && el.contains(match)) cb.call(match, e)
       }
     : cb
+
+  if (options.once) {
+    const orig = wrapped
+    wrapped = (e) => {
+      off(el, type, cb, selector)
+      orig(e)
+    }
+  }
 
   el.addEventListener(type, wrapped, options)
 

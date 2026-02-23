@@ -1,23 +1,22 @@
-# On-event
+# on-events
 
-**A tiny DOM event utility with sugar.**  
-Write clean event bindings using fluent `On.click(...)`, `On.first.keydown(...)`, or classic `on(el, 'click', fn)`.
+**A tiny DOM event utility with composable sugar.**
+Write clean event bindings using fluent chains like `On.click(...)`, `On.capture.passive.scroll(...)`, `On.first.delegate.click(...)`, or classic `on(el, 'click', fn)`.
 
 ---
 
 ## Features
 
-- `on(el, 'click', fn)` — classic binding
-- `On.click(el, fn)` — fluent sugar per event name
-- `On.first.click(el, fn)` — fires once then unbinds
-- `On.delegate.click(el, selector, fn)` — delegated events
-- `On.capture.focus(el, fn)` — capture-phase listener
-- `On.hover(el, enter, leave)` — mouseenter/leave pair
-- `On.batch(el, { click, ... })` — multi-bind at once
-- `On.first.batch(...)` — one-time multi-bind
-- `On.passive.scroll(el, fn)` — optimized scroll/touch
-- `On.ready(fn)` — run when DOM is ready
-- ESM, zero dependencies, < 1KB min+gzip
+* `on(el, 'click', fn)` — classic binding
+* `On.click(el, fn)` — fluent sugar per event name
+* `On.first.click(el, fn)` — fires once then unbinds
+* `On.capture.passive.scroll(el, fn)` — fully composable modifiers
+* `On.delegate.click(el, selector, fn)` — delegated events
+* `On.hover(el, enter, leave)` — mouseenter/leave pair
+* `On.batch(el, { click, ... })` — multi-bind at once
+* `On.first.batch(...)` — one-time multi-bind
+* `On.ready(fn)` — run when DOM is ready
+* ESM, zero dependencies, < 1KB min+gzip
 
 ---
 
@@ -31,54 +30,76 @@ npm install on-events
 
 ## Usage
 
-### Classic Binding
-
-```js
-import { on, off } from 'on-events'
-
-const stop = on(window, 'keydown', (e) => {
-  console.log('Pressed:', e.key)
-})
-
-stop() // unbinds
-```
-
 ---
 
-### Fluent Sugar
+## Fluent & Composable Sugar
 
 ```js
 import { On } from 'on-events'
 
+function handleClick() {
+  console.log('Clicked')
+}
+
+function handleSubmit() {
+  console.log('Submitted once')
+}
+
+function handleScroll() {
+  console.log('Optimized scroll listener')
+}
+
+function handleDelegatedClick(e) {
+  console.log('Clicked', this.textContent)
+}
+
+function handleComposedClick() {
+  console.log('First captured delegated click')
+}
+
+function enterCard() {
+  card.classList.add('hover')
+}
+
+function leaveCard() {
+  card.classList.remove('hover')
+}
+
 // Basic
-On.click(button, () => console.log('Clicked'))
+On.click(button, handleClick)
 
 // Fires once
-On.first.submit(form, () => console.log('Submitted once'))
+On.first.submit(form, handleSubmit)
+
+// Capture + Passive (composable)
+On.capture.passive.scroll(window, handleScroll)
 
 // Delegate
-On.delegate.click(document, 'button.action', (e) => {
-  console.log('Clicked', e.target.textContent)
-})
+On.delegate.click(document, 'button.action', handleDelegatedClick)
 
-// Capture
-On.capture.focus(input, () => console.log('Focus (captured)'))
+// Fully composed modifiers
+On.first.delegate.capture.click(document, 'a', handleComposedClick)
 
-// Hover
-const stopHover = On.hover(card,
-  () => card.classList.add('hover'),
-  () => card.classList.remove('hover')
-)
+// Hover helper
+const stopHover = On.hover(card, enterCard, leaveCard)
 ```
 
 ---
 
-### Batch Binding
+## Batch Binding
 
 ```js
+function handleWindowClick() {
+  console.log('Window clicked')
+}
+
+function handleKeydown(e) {
+  console.log('Key:', e.key)
+}
+
 const stop = On.batch(window, {
-  click: () => console.log('Window clicked'),
-  keydown: (e) => console.log('Key:', e.key)
+  click: handleWindowClick,
+  keydown: handleKeydown
 })
 
 // Unbind all
@@ -87,83 +108,91 @@ stop()
 
 ---
 
-### One-Time Batch Binding
+## One-Time Batch Binding
 
 ```js
+function handleFirstScroll() {
+  console.log('First scroll')
+}
+
+function handleFirstKeyup() {
+  console.log('First keyup')
+}
+
 On.first.batch(document, {
-  scroll: () => console.log('First scroll'),
-  keyup: () => console.log('First keyup')
+  scroll: handleFirstScroll,
+  keyup: handleFirstKeyup
 })
 ```
 
 ---
 
-### Passive Listeners
+## Delegate Batch (Optional Pattern)
+
+You may pass `[selector, handler]` for delegated batch entries:
 
 ```js
-On.passive.scroll(window, () => console.log('Smooth scroll'))
-On.passive.touchstart(document, e => console.log('Touch start'))
+function handleSave() {
+  console.log('Saved')
+}
+
+On.batch(document, {
+  click: ['button.save', handleSave]
+})
 ```
 
 ---
 
-### DOM Ready
+## DOM Ready
 
 ```js
-On.ready(() => {
+function handleReady() {
   console.log('DOM fully loaded')
-})
+}
+
+On.ready(handleReady)
 ```
 
 ---
 
-## API Reference
+# API Reference
 
-### `on(el, event, [selector], handler)`
+# Composable Modifiers
 
-Adds a standard or delegated event listener. Returns a stop function.
+Modifiers can be chained before the event name.
 
-### `off(el, event, handler, [selector])`
+### Available Modifiers
 
-Removes a previously added listener.
+* `first` / `once` → `{ once: true }`
+* `capture` → `{ capture: true }`
+* `passive` → `{ passive: true }`
+* `delegate` → enables delegated signature `(el, selector, handler)`
 
----
+### Examples
 
-### `On.event(el, handler)`
+```js
+On.first.click(el, fn)
+On.capture.scroll(window, fn)
+On.passive.wheel(el, fn)
+On.delegate.click(root, 'a', fn)
+On.first.capture.passive.touchstart(el, fn)
+```
 
-Fluent alias for `on(el, 'event', handler)`.  
-Example: `On.click(el, fn)`.
-
----
-
-### `On.first.event(el, handler)`
-
-Same as `On.event`, but auto-removes after first call.  
-Example: `On.first.keydown(el, fn)`
-
----
-
-### `On.delegate.event(el, selector, handler)`
-
-Binds a delegated event using `closest(selector)`.
+Modifiers are fully composable and order-independent.
 
 ---
 
-### `On.capture.event(el, handler)`
+## `On.hover(el, enterFn, leaveFn)`
 
-Adds a listener during the capture phase.
-
----
-
-### `On.hover(el, enterFn, leaveFn)`
-
-Convenience for `mouseenter` and `mouseleave`.
+Convenience wrapper for `mouseenter` and `mouseleave`.
+Returns a single `stop()` function.
 
 ---
 
-### `On.batch(el, map)`
+## `On.batch(el, map)`
 
 Bind multiple events at once:
+
 ```js
 On.batch(el, {
   click: fn1,
@@ -171,41 +200,91 @@ On.batch(el, {
 })
 ```
 
----
-
-### `On.first.batch(el, map)`
-
-One-time version of `batch()`:
-```js
-On.first.batch(el, {
-  scroll: onceScroll,
-  input: onceInput
-})
-```
+Returns a single `stop()` function that removes all listeners.
 
 ---
 
-### `On.passive.event(el, handler)`
+## `On.first.batch(el, map)`
 
-Adds a listener with `{ passive: true }`, ideal for:
-- `scroll`
-- `touchstart`
-- `wheel`
+One-time version of `batch()`.
 
 ---
 
-### `On.ready(fn)`
+## `On.ready(fn)`
 
 Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 
 ---
 
-## Legacy Aliases
+## Why not `addEventListener` directly?
 
-- `On.once.*` is still available as a backward-compatible alias for `On.first.*`
+`addEventListener` is great — this library just removes the repetitive parts when you bind lots of UI events.
+
+* One-liners for common patterns (`once`, `capture`, `passive`, `delegate`)
+* Every bind returns a `stop()` cleanup function (no “where did I put that handler?”)
+* Delegation helper that sets `this` to the matched element
+* Batch binding to keep setup code tidy
+* Composable modifiers so you don’t have to remember option object shapes
+* Zero deps and tiny footprint, so it stays out of your way
+
+---
+
+## Tiny performance note
+
+This library is a thin wrapper around native `addEventListener`.
+
+* **Direct binding (`On.click(el, fn)` / `on(el, 'click', fn)`)**: adds essentially no runtime overhead beyond one extra function call during setup.
+* **`first` / `capture` / `passive`**: uses the browser’s native listener options (`{ once }`, `{ capture }`, `{ passive }`).
+* **Delegation (`On.delegate.*`)**: each event does a `closest(selector)` lookup. It’s excellent for reducing the *number* of listeners, but for extremely hot events (e.g. `mousemove`), direct binding may be faster.
+
+Rule of thumb: use delegation for `click/input/submit`, and direct handlers for high-frequency events.
+
+---
+
+## Notes
+
+* Delegation uses `Element.closest()` internally.
+* In delegated handlers, `this` refers to the matched element.
+* Modern browsers only (uses `Proxy`, `WeakMap`, and modern DOM APIs).
+* All binding methods return a `stop()` function for explicit cleanup.
+
+---
+
+## Low-level API (on / off)
+
+If you prefer a minimal, explicit API without fluent modifiers, you can use the core helpers directly.
+
+### `on(el, event, handler)`
+
+### `on(el, event, selector, handler)`
+
+Adds a standard or delegated event listener.
+Returns a `stop()` function that removes the listener.
+
+```js
+import { on, off } from 'on-events'
+
+function handleKeydown(e) {
+  console.log('Pressed:', e.key)
+}
+
+const stop = on(window, 'keydown', handleKeydown)
+
+stop() // unbinds
+```
+
+### `off(el, event, handler, [selector])`
+
+Removes a previously added listener.
+
+---
+
+## Legacy Alias
+
+* `On.once.*` is available as a backward-compatible alias for `On.first.*`
 
 ---
 
 ## License
 
-\--{DR.WATT v3.0}--
+--{DR.WATT v3.0}--

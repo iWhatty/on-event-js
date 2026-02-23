@@ -1,23 +1,42 @@
 {
     "name": "on-events",
-    "version": "1.0.0",
-    "description": "Minimal DOM event utility with delegation, unbinding, and sugar.",
-    "exports": {
-        "import": "./on-event.js"
-    },
+    "version": "0.0.1",
+    "description": "Tiny DOM event utility with composable sugar, delegation, and cleanup.",
     "type": "module",
-    "keywords": [
-        "events",
-        "dom",
-        "delegate",
-        "unbind",
-        "handler"
+    "sideEffects": false,
+    "main": "./dist/on-events.min.js",
+    "module": "./dist/on-events.min.js",
+    "types": "./dist/on-events.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/on-events.d.ts",
+            "import": "./dist/on-events.min.js"
+        }
+    },
+    "files": [
+        "dist"
     ],
-    "author": "J W",
-    "license": "MIT",
+    "keywords": [
+        "dom",
+        "events",
+        "event-listener",
+        "delegate",
+        "frontend",
+        "browser",
+        "javascript",
+        "tiny",
+        "utility"
+    ],
+    "author": "DR.WATT",
+    "license": "SEE LICENSE IN LICENSE",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/iWhatty/on-event-js"
+    },
     "scripts": {
         "dev": "parcel testing/Test_OnEvent.html",
-        "build": "node build.js"
+        "build": "node build.js",
+        "prepublishOnly": "npm run build"
     },
     "devDependencies": {
         "esbuild": "^0.25.3",

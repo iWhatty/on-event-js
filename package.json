@@ -34,12 +34,16 @@
         "url": "https://github.com/iWhatty/on-event-js"
     },
     "scripts": {
-        "dev": "parcel testing/Test_OnEvent.html",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:ui": "vitest --ui",
+        "test:watch": "vitest --watch",
         "build": "node build.js",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build && npm run test:run"
     },
     "devDependencies": {
         "esbuild": "^0.25.3",
-        "parcel": "^2.14.4"
+        "jsdom": "^28.1.0",
+        "vitest": "^4.0.18"
     }
 }

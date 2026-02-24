@@ -1,20 +1,64 @@
-import { on, On, off } from '../src/on-event'
+// ./Testing/example.js
 
-// Classic
-on(window, 'click', () => console.log('clicked'))
+import { on, off, On } from '../src/on-events.js'
 
-// Fluent
-On.keydown(document, (e) => console.log(e.key))
-On.click('#btn', () => console.log('clicked'))
+// --- helpers ---
+function logClicked() {
+    console.log('clicked')
+}
 
-// Once
-On.once.submit(form, handleSubmitOnce)
+function logKey(e) {
+    console.log(e.key)
+}
 
-// Delegated
-On.delegate.click(document, 'button.action', e => console.log(e.target))
+function handleSubmitOnce(e) {
+    e.preventDefault()
+    console.log('submitted once')
+}
 
-// Capture phase
-On.capture.focus(input, () => console.log('focus in capture'))
+function handleDelegatedClick(e) {
+    // `this` is the matched element (because delegation uses cb.call(match, e))
+    console.log('delegated target:', this)
+    console.log('event target:', e.target)
+}
 
-// Hover
-const unhover = On.hover(box, () => box.classList.add('hover'), () => box.classList.remove('hover'))
+function logFocusCapture() {
+    console.log('focus in capture')
+}
+
+function addHover() {
+    box.classList.add('hover')
+}
+
+function removeHover() {
+    box.classList.remove('hover')
+}
+
+// --- elements ---
+const btn = document.querySelector('#btn')
+const form = document.querySelector('form')
+const input = document.querySelector('input')
+const box = document.querySelector('.box')
+
+// --- Classic ---
+const stopClick = on(window, 'click', logClicked)
+
+// If you want to demonstrate off():
+// off(window, 'click', logClicked)
+// stopClick() // also unbinds
+
+// --- Fluent ---
+if (btn) On.click(btn, logClicked)
+On.keydown(document, logKey)
+
+// --- Once ---
+if (form) On.once.submit(form, handleSubmitOnce)
+
+// --- Delegated ---
+On.delegate.click(document, 'button.action', handleDelegatedClick)
+
+// --- Capture phase ---
+if (input) On.capture.focus(input, logFocusCapture)
+
+// --- Hover ---
+const unhover = box ? On.hover(box, addHover, removeHover) : () => { }

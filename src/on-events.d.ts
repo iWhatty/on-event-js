@@ -1,4 +1,4 @@
-// dist/on-events.d.ts
+// src/on-events.d.ts
 
 export type Stop = () => void
 

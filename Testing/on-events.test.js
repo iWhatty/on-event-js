@@ -1,8 +1,11 @@
+// ./Testing/on-events.test.js
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { on, off, On } from '../src/on-event.js'
+import { on, off, On } from '../src/on-events.js'
 
 describe('on-events', () => {
   let el, child
+
   beforeEach(() => {
     el = document.createElement('div')
     child = document.createElement('button')
@@ -59,14 +62,38 @@ describe('on-events', () => {
     const click = vi.fn()
     const over = vi.fn()
     const stop = On.batch(child, { click, mouseover: over })
+
     child.dispatchEvent(new Event('click'))
     child.dispatchEvent(new Event('mouseover'))
+
     expect(click).toHaveBeenCalledOnce()
     expect(over).toHaveBeenCalledOnce()
+
     stop()
+
     child.dispatchEvent(new Event('click'))
     child.dispatchEvent(new Event('mouseover'))
+
     expect(click).toHaveBeenCalledOnce()
     expect(over).toHaveBeenCalledOnce()
+  })
+
+  it('removes capture listeners correctly', () => {
+    const fn = vi.fn()
+    const stop = On.capture.click(child, fn)
+    stop()
+    child.click()
+    expect(fn).not.toHaveBeenCalled()
+  })
+
+  it('delegation does not throw when event target is a Text node', () => {
+    const fn = vi.fn()
+    const stop = On.delegate.click(el, 'button', fn)
+
+    const text = child.firstChild
+    text.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    expect(fn).toHaveBeenCalledOnce()
+    stop()
   })
 })

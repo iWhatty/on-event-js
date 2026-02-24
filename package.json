@@ -31,7 +31,7 @@
     "license": "SEE LICENSE IN LICENSE",
     "repository": {
         "type": "git",
-        "url": "https://github.com/iWhatty/on-event-js"
+        "url": "git+https://github.com/iWhatty/on-event-js.git"
     },
     "scripts": {
         "test": "vitest",

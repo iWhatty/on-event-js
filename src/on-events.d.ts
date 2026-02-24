@@ -5,6 +5,8 @@ export type Stop = () => void
 export type Handler<E extends Event = Event> = (this: Element, ev: E) => any
 export type DirectHandler<E extends Event = Event> = (ev: E) => any
 
+// --- Low-level API ---
+
 export function on<E extends Event = Event>(
     el: EventTarget,
     event: string,
@@ -32,8 +34,10 @@ export function off<E extends Event = Event>(
     selector?: string
 ): void
 
+// --- Fluent Chain API ---
+
 export interface OnChain {
-    // modifiers
+    // modifiers (composable)
     first: OnChain
     once: OnChain
     capture: OnChain
@@ -41,18 +45,47 @@ export interface OnChain {
     delegate: OnChain
 
     // utilities
-    hover(el: Element, enter: (ev: Event) => any, leave: (ev: Event) => any): Stop
+    hover(
+        el: Element,
+        enter: (ev: MouseEvent) => any,
+        leave: (ev: MouseEvent) => any
+    ): Stop
+
     batch(
         el: EventTarget,
         map: Record<
             string,
-            ((ev: any) => any) | [string, (ev: any) => any]
+            | DirectHandler<any>
+            | [string, Handler<any>]
         >
     ): Stop
+
     ready(fn: () => void): void
 
-    // event binder (unknown event names supported)
-    [event: string]: any
+    // event binder (fluent)
+    <E extends Event = Event>(
+        el: EventTarget,
+        handler: DirectHandler<E>
+    ): Stop
+
+    <E extends Event = Event>(
+        el: Element | Document,
+        selector: string,
+        handler: Handler<E>
+    ): Stop
+
+    // dynamic event access (On.click, On.keydown, etc.)
+    [event: string]:
+    | OnChain
+    | (<E extends Event = Event>(
+        el: EventTarget,
+        handler: DirectHandler<E>
+    ) => Stop)
+    | (<E extends Event = Event>(
+        el: Element | Document,
+        selector: string,
+        handler: Handler<E>
+    ) => Stop)
 }
 
 export const On: OnChain

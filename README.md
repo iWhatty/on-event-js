@@ -5,6 +5,29 @@ Write clean event bindings using fluent chains like `On.click(...)`, `On.capture
 
 ---
 
+## ⚡ Example Usage
+
+One expressive line. Fully composable. No option objects.
+
+```js
+import { On } from 'on-events'
+
+function handleLinkClick(e) {
+  e.preventDefault()
+  console.log('First captured delegated click:', this.href)
+}
+
+On.first.delegate.capture.click(document, 'a.nav-link', handleLinkClick)
+```
+
+• Delegated
+• Capture phase
+• Fires once
+• Clean `this` binding
+• Returns `stop()` if you need manual control
+
+---
+
 ## Features
 
 * `on(el, 'click', fn)` — classic binding
@@ -221,11 +244,11 @@ Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 `addEventListener` is great — this library just removes the repetitive parts when you bind lots of UI events.
 
 * One-liners for common patterns (`once`, `capture`, `passive`, `delegate`)
-* Every bind returns a `stop()` cleanup function (no “where did I put that handler?”)
+* Every bind returns a `stop()` cleanup function
 * Delegation helper that sets `this` to the matched element
 * Batch binding to keep setup code tidy
-* Composable modifiers so you don’t have to remember option object shapes
-* Zero deps and tiny footprint, so it stays out of your way
+* Composable modifiers instead of option object juggling
+* Zero deps and tiny footprint
 
 ---
 
@@ -233,11 +256,11 @@ Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 
 This library is a thin wrapper around native `addEventListener`.
 
-* **Direct binding (`On.click(el, fn)` / `on(el, 'click', fn)`)**: adds essentially no runtime overhead beyond one extra function call during setup.
-* **`first` / `capture` / `passive`**: uses the browser’s native listener options (`{ once }`, `{ capture }`, `{ passive }`).
-* **Delegation (`On.delegate.*`)**: each event does a `closest(selector)` lookup. It’s excellent for reducing the *number* of listeners, but for extremely hot events (e.g. `mousemove`), direct binding may be faster.
+* **Direct binding (`On.click(el, fn)` / `on(el, 'click', fn)`)**: essentially zero runtime overhead beyond one extra function call during setup.
+* **`first` / `capture` / `passive`**: uses native listener options.
+* **Delegation (`On.delegate.*`)**: performs a `closest(selector)` lookup per event. Ideal for reducing listener count, but direct binding is better for extremely hot events like `mousemove`.
 
-Rule of thumb: use delegation for `click/input/submit`, and direct handlers for high-frequency events.
+Rule of thumb: delegate `click/input/submit`, bind directly for high-frequency events.
 
 ---
 

@@ -22,6 +22,8 @@ function baseOn(el, type, selector, cb, options) {
 
   const wrapped = selector
     ? (e) => {
+      // TODO compare robustness of each option below.s
+      // const target = e.target?.nodeType === 1 ? e.target : e.target?.parentElement
       const target = e.target instanceof Element ? e.target : e.target?.parentElement
       if (!target) return
       const match = target.closest(selector)

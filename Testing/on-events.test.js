@@ -96,4 +96,115 @@ describe('on-events', () => {
     expect(fn).toHaveBeenCalledOnce()
     stop()
   })
+
+
+
+  it('supports grouped cleanup', () => {
+    const click = vi.fn()
+    const over = vi.fn()
+
+    const group = On.group()
+    group.click(child, click)
+    group.mouseover(child, over)
+
+    child.click()
+    child.dispatchEvent(new Event('mouseover'))
+
+    expect(click).toHaveBeenCalledOnce()
+    expect(over).toHaveBeenCalledOnce()
+
+    group.stop()
+
+    child.click()
+    child.dispatchEvent(new Event('mouseover'))
+
+    expect(click).toHaveBeenCalledOnce()
+    expect(over).toHaveBeenCalledOnce()
+  })
+
+  it('group.add ignores nullish values safely', () => {
+    const group = On.group()
+
+    expect(group.add(null)).toBeNull()
+    expect(group.add(undefined)).toBeUndefined()
+    expect(group.add(false)).toBe(false)
+  })
+
+  it('supports custom event helper', () => {
+    const fn = vi.fn()
+    const stop = On.event('watt-test')(child, fn)
+
+    child.dispatchEvent(new Event('watt-test'))
+
+    expect(fn).toHaveBeenCalledOnce()
+    stop()
+  })
+
+
+
+  it('supports grouped cleanup with composed modifiers', () => {
+    const fn = vi.fn()
+    const group = On.group()
+
+    group.first.click(child, fn)
+
+    child.click()
+    child.click()
+
+    expect(fn).toHaveBeenCalledOnce()
+
+    group.stop()
+
+    child.click()
+    expect(fn).toHaveBeenCalledOnce()
+  })
+
+  it('supports grouped delegated cleanup with composed modifiers', () => {
+    const fn = vi.fn()
+    const group = On.group()
+
+    group.first.delegate.click(el, 'button', fn)
+
+    child.click()
+    child.click()
+
+    expect(fn).toHaveBeenCalledOnce()
+
+    group.stop()
+
+    child.click()
+    expect(fn).toHaveBeenCalledOnce()
+  })
+
+  it('supports grouped custom event cleanup', () => {
+    const fn = vi.fn()
+    const group = On.group()
+
+    group.event('watt-grouped')(child, fn)
+
+    child.dispatchEvent(new Event('watt-grouped'))
+    expect(fn).toHaveBeenCalledOnce()
+
+    group.stop()
+
+    child.dispatchEvent(new Event('watt-grouped'))
+    expect(fn).toHaveBeenCalledOnce()
+  })
+
+  it('supports grouped capture chain cleanup', () => {
+    const fn = vi.fn()
+    const group = On.group()
+
+    group.capture.click(child, fn)
+
+    child.click()
+    expect(fn).toHaveBeenCalledOnce()
+
+    group.stop()
+
+    child.click()
+    expect(fn).toHaveBeenCalledOnce()
+  })
+
+
 })

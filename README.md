@@ -1,3 +1,14 @@
+
+# on-events
+
+[![npm version](https://img.shields.io/npm/v/on-events.svg)](https://www.npmjs.com/package/on-events)
+[![npm downloads](https://img.shields.io/npm/dm/on-events.svg)](https://www.npmjs.com/package/on-events)
+[![GitHub stars](https://img.shields.io/github/stars/iWhatty/on-event-js.svg?style=social)](https://github.com/iWhatty/on-event-js)
+[![License](https://img.shields.io/github/license/iWhatty/on-event-js.svg)](https://github.com/iWhatty/on-event-js/blob/main/LICENSE)
+
+**A tiny DOM event utility with composable sugar.**
+
+
 # on-events
 
 **A tiny DOM event utility with composable sugar.**
@@ -7,7 +18,7 @@ Write clean event bindings using fluent chains like `On.click(...)`, `On.capture
 
 ## ⚡ Example Usage
 
-One expressive line. Fully composable. No option objects.
+Compose `once`, `capture`, `passive`, and delegation without repetitive option objects.
 
 ```js
 import { On } from 'on-events'
@@ -20,11 +31,11 @@ function handleLinkClick(e) {
 On.first.delegate.capture.click(document, 'a.nav-link', handleLinkClick)
 ```
 
-• Delegated
-• Capture phase
-• Fires once
-• Clean `this` binding
-• Returns `stop()` if you need manual control
+* Delegated
+* Capture phase
+* Fires once
+* Clean `this` binding
+* Returns `stop()` if you need manual control
 
 ---
 
@@ -36,10 +47,12 @@ On.first.delegate.capture.click(document, 'a.nav-link', handleLinkClick)
 * `On.capture.passive.scroll(el, fn)` — fully composable modifiers
 * `On.delegate.click(el, selector, fn)` — delegated events
 * `On.hover(el, enter, leave)` — mouseenter/leave pair
-* `On.batch(el, { click, ... })` — multi-bind at once
+* `On.batch(el, { click, ... })` — bind multiple events at once
 * `On.first.batch(...)` — one-time multi-bind
 * `On.ready(fn)` — run when DOM is ready
-* ESM, zero dependencies, < 1KB min+gzip
+* `On.group()` — collect related listeners and tear them down together
+* Better TS support for simple binds like `On.input(el, fn)` and `On.change(el, fn)`
+* ESM, zero dependencies, tiny footprint
 
 ---
 
@@ -48,10 +61,6 @@ On.first.delegate.capture.click(document, 'a.nav-link', handleLinkClick)
 ```bash
 npm install on-events
 ```
-
----
-
-## Usage
 
 ---
 
@@ -150,7 +159,7 @@ On.first.batch(document, {
 
 ---
 
-## Delegate Batch (Optional Pattern)
+## Delegate Batch
 
 You may pass `[selector, handler]` for delegated batch entries:
 
@@ -178,9 +187,56 @@ On.ready(handleReady)
 
 ---
 
+## Grouped Cleanup
+
+When a UI module binds listeners across multiple elements, `On.group()` lets you track them under one scoped teardown handle.
+
+```js
+import { On } from 'on-events'
+
+const page = On.group()
+
+page.click(settingsToggleBtn, () => {
+  settingsSection.classList.toggle('collapsed')
+})
+
+page.input(searchInput, handleSearch)
+page.delegate.click(document, 'button.save', handleSave)
+
+// Later:
+page.stop()
+```
+
+You can also manually add an existing cleanup function:
+
+```js
+const group = On.group()
+
+group.add(On.click(button, handleClick))
+group.add(null) // safely ignored
+
+group.stop()
+```
+
+---
+
+## Custom Events
+
+For custom or non-standard event names, use `On.event(type)`:
+
+```js
+const stop = On.event('panel:open')(panel, (e) => {
+  console.log('opened', e.type)
+})
+
+stop()
+```
+
+---
+
 # API Reference
 
-# Composable Modifiers
+## Composable Modifiers
 
 Modifiers can be chained before the event name.
 
@@ -239,6 +295,23 @@ Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 
 ---
 
+## `On.group()`
+
+Creates a scoped cleanup collector for related listeners.
+
+```js
+const group = On.group()
+
+group.click(button, onClick)
+group.input(input, onInput)
+
+group.stop()
+```
+
+Useful when a page, modal, or UI module binds listeners across multiple elements and wants one teardown call.
+
+---
+
 ## Why not `addEventListener` directly?
 
 `addEventListener` is great — this library just removes the repetitive parts when you bind lots of UI events.
@@ -247,6 +320,7 @@ Runs `fn` once the DOM is fully loaded (`DOMContentLoaded` or already ready).
 * Every bind returns a `stop()` cleanup function
 * Delegation helper that sets `this` to the matched element
 * Batch binding to keep setup code tidy
+* Grouped cleanup for lifecycle-based teardown
 * Composable modifiers instead of option object juggling
 * Zero deps and tiny footprint
 
@@ -260,7 +334,7 @@ This library is a thin wrapper around native `addEventListener`.
 * **`first` / `capture` / `passive`**: uses native listener options.
 * **Delegation (`On.delegate.*`)**: performs a `closest(selector)` lookup per event. Ideal for reducing listener count, but direct binding is better for extremely hot events like `mousemove`.
 
-Rule of thumb: delegate `click/input/submit`, bind directly for high-frequency events.
+Rule of thumb: delegate `click`, `input`, and `submit`; bind directly for high-frequency events.
 
 ---
 
@@ -273,13 +347,17 @@ Rule of thumb: delegate `click/input/submit`, bind directly for high-frequency e
 
 ---
 
-## Low-level API (on / off)
+## Low-level API (`on` / `off`)
 
 If you prefer a minimal, explicit API without fluent modifiers, you can use the core helpers directly.
 
 ### `on(el, event, handler)`
 
+### `on(el, event, handler, options)`
+
 ### `on(el, event, selector, handler)`
+
+### `on(el, event, selector, handler, options)`
 
 Adds a standard or delegated event listener.
 Returns a `stop()` function that removes the listener.
